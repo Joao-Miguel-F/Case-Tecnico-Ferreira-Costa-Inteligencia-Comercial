@@ -60,17 +60,14 @@ Este é o ponto mais importante do relatório. Uma queda dessa magnitude, susten
 ### H3 — A queda está concentrada em poucas lojas?
 **Rejeitada.** **10 das 11 lojas** caem mais de 30% no mesmo comparativo. A única exceção é a Loja 9 (Salvador/BA), que cresce 73% no período — um contraponto interessante que vale investigação à parte (pode ser uma loja que absorveu demanda das demais, ou que teve tratamento diferenciado de reposição). Fora esse caso isolado, a queda é uma característica da rede como um todo, não de uma ou duas unidades com problemas pontuais.
 
-![Queda de receita por loja](../outputs/figures/causa_raiz_queda_por_loja.png)
 
 ### H4 — O sortimento efetivamente vendido está encolhendo?
 **Confirmada.** O número de SKUs distintos vendidos por mês cai de forma quase monotônica após o pico de novembro/2024 (2.490 SKUs) até dezembro/2025 (1.212 SKUs) — uma redução de 51% na largura do sortimento ativo, praticamente na mesma proporção da queda de receita. O número de transações mensais cai na mesma direção (de 71.525 em nov/24 para 12.258 em dez/25). Ou seja: **não é só que cada produto vende menos — é que cada vez menos produtos aparecem numa venda**, o que é a assinatura característica de um problema de disponibilidade de produto, não de demanda do consumidor.
 
-![Atividade mensal: receita, SKUs vendidos e transações caem juntos](../outputs/figures/causa_raiz_atividade_mensal.png)
 
 ### H5 — A reposição de estoque (compras) está encolhendo, e isso está "matando de fome" o sortimento vendável?
 **Confirmada — e é a explicação mais provável.** O número de SKUs distintos comprados por mês cai de 74 em janeiro/2024 para uma média de apenas 14 no segundo semestre de 2025 — uma queda proporcionalmente ainda maior que a do sortimento vendido. A correlação entre "SKUs comprados no mês" e "SKUs vendidos no mês" é de **0,49**, moderada-forte para dados mensais agregados de um processo com defasagem entre compra e venda (produto comprado num mês continua sendo vendido nos meses seguintes até esgotar o estoque, o que dilui e atrasa a correlação — na prática, o efeito real da reposição sobre o sortimento vendável é provavelmente ainda mais forte do que esse número sozinho sugere).
 
-![Reposição de estoque encolhe junto com o sortimento vendido](../outputs/figures/causa_raiz_compras_vs_skus_vendidos.png)
 
 ### Conclusão do diagnóstico
 
