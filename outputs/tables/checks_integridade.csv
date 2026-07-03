@@ -1,0 +1,7 @@
+base,check,linhas_com_problema,total_linhas,pct
+fato_vendas,CODIGO nao encontrado em dim_produto,0,1090390,0.0
+fato_vendas,COD_EMPRESA nao encontrado em dimensao_lojas,0,1090390,0.0
+fato_compras,CODIGO nao encontrado em dim_produto,0,1393,0.0
+fato_compras,COD_EMPRESA nao encontrado em dimensao_lojas,0,1393,0.0
+fato_estoque_inicial,CODIGO nao encontrado em dim_produto,0,25330,0.0
+fato_estoque_inicial,COD_EMPRESA nao encontrado em dimensao_lojas,0,25330,0.0

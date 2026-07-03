@@ -1,0 +1,11 @@
+indicador,valor
+total_produtos_cadastrados,2731.0
+produtos_sem_nenhuma_venda,2.0
+combinacoes_produto_loja_estoque_parado,8757.0
+combinacoes_produto_loja_risco_ruptura,2931.0
+produtos_candidatos_promocao,1961.0
+produtos_candidatos_descontinuacao,224.0
+produtos_candidatos_repricing_padronizacao,50.0
+produtos_candidatos_repricing_elasticidade,160.0
+demanda_total_projetada_2026,1370582.7572753474
+demanda_media_anual_historica,2320941.805
