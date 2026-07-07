@@ -1,0 +1,356 @@
+/* Spec 09 - dashboard estatico (GitHub Pages). Paleta de referencia validada
+   (dataviz skill); trocar valores aqui nao muda a estrutura do metodo. */
+
+:root {
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --serie-1: #2a78d6;
+  --serie-2: #1baf7a;
+  --serie-3: #eda100;
+  --serie-4: #008300;
+  --serie-5: #4a3aa7;
+  --serie-6: #e34948;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --wash-1: rgba(42, 120, 214, 0.10);
+  --wash-2: rgba(27, 175, 122, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --serie-1: #3987e5;
+    --serie-2: #199e70;
+    --serie-3: #c98500;
+    --serie-4: #008300;
+    --serie-5: #9085e9;
+    --serie-6: #e66767;
+    --wash-1: rgba(57, 135, 229, 0.16);
+    --wash-2: rgba(25, 158, 112, 0.18);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+a { color: var(--serie-1); }
+
+code { font-size: 0.85em; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+
+/* ---------- cabecalho e navegacao ---------- */
+
+.topo {
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.topo h1 { margin: 0 0 2px; font-size: 20px; font-weight: 650; }
+
+.topo .sub { color: var(--ink-2); margin: 0; max-width: 72rem; }
+
+.topo .fonte-nota { color: var(--ink-3); font-size: 12px; margin: 6px 0 0; }
+
+nav.abas {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+}
+
+nav.abas a {
+  padding: 10px 12px;
+  white-space: nowrap;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+}
+
+nav.abas a:hover { color: var(--ink-1); }
+
+nav.abas a.ativo { color: var(--ink-1); border-bottom-color: var(--serie-1); font-weight: 600; }
+
+/* ---------- secoes ---------- */
+
+main { max-width: 1180px; margin: 0 auto; padding: 20px 24px 64px; }
+
+section.pagina { display: none; }
+section.pagina.ativa { display: block; }
+
+section.pagina > h2 { font-size: 18px; margin: 8px 0 2px; }
+
+.interpretacao { color: var(--ink-2); margin: 0 0 16px; max-width: 72rem; }
+
+.bloco {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 0 16px;
+}
+
+.bloco > h3 { margin: 0 0 2px; font-size: 15px; }
+
+.bloco > .sub { color: var(--ink-2); margin: 0 0 12px; font-size: 13px; }
+
+.nota-limitacao {
+  color: var(--ink-2);
+  font-size: 12.5px;
+  border-left: 3px solid var(--baseline);
+  padding: 4px 10px;
+  margin: 12px 0 0;
+}
+
+.grade-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ---------- stat tiles ---------- */
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.tile .rotulo { color: var(--ink-2); font-size: 12.5px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.tile .valor { font-size: 26px; font-weight: 650; margin: 2px 0; }
+
+.tile .delta { font-size: 12.5px; color: var(--ink-2); }
+
+.tile details { margin-top: 6px; font-size: 12px; color: var(--ink-2); }
+
+.tile details summary, .bloco details.kpi-nota summary {
+  cursor: pointer;
+  color: var(--ink-3);
+  list-style: none;
+  user-select: none;
+}
+
+.tile details summary::before, .bloco details.kpi-nota summary::before { content: "ⓘ "; }
+
+.tile details dl { margin: 6px 0 0; }
+.tile details dt { font-weight: 600; margin-top: 4px; }
+.tile details dd { margin: 0; }
+
+/* ---------- selos epistemicos ---------- */
+
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.selo-fato { color: var(--status-good); background: rgba(12, 163, 12, 0.10); }
+.selo-descritiva { color: var(--serie-1); background: var(--wash-1); }
+.selo-exploratoria { color: #8a6100; background: rgba(237, 161, 0, 0.14); }
+.selo-triagem { color: var(--serie-5); background: rgba(74, 58, 167, 0.10); }
+.selo-bloqueado { color: var(--status-critical); background: rgba(208, 59, 59, 0.10); }
+.selo-ausente { color: var(--ink-2); background: rgba(137, 135, 129, 0.14); }
+.selo-naovalidado { color: #a34a22; background: rgba(236, 131, 90, 0.14); }
+
+@media (prefers-color-scheme: dark) {
+  .selo-exploratoria { color: #eda100; }
+  .selo-naovalidado { color: #ec835a; }
+}
+
+/* ---------- graficos ---------- */
+
+.grafico { position: relative; width: 100%; }
+
+.grafico svg { width: 100%; height: auto; display: block; }
+
+.legenda { display: flex; gap: 14px; flex-wrap: wrap; margin: 4px 0 8px; font-size: 12.5px; color: var(--ink-2); }
+
+.legenda .chave { display: inline-flex; align-items: center; gap: 6px; }
+
+.legenda .traco { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.legenda .caixa { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+.tooltip {
+  position: fixed;
+  z-index: 90;
+  pointer-events: none;
+  background: var(--surface);
+  color: var(--ink-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  padding: 8px 10px;
+  font-size: 12.5px;
+  max-width: 300px;
+  display: none;
+}
+
+.tooltip .t-titulo { color: var(--ink-2); margin-bottom: 4px; }
+
+.tooltip .t-linha { display: flex; align-items: baseline; gap: 6px; }
+
+.tooltip .t-chave { width: 14px; height: 3px; border-radius: 2px; flex: none; align-self: center; }
+
+.tooltip .t-valor { font-weight: 650; }
+
+.tooltip .t-nome { color: var(--ink-2); }
+
+/* ---------- tabelas ---------- */
+
+.tabela-barra { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 8px; }
+
+.tabela-barra input[type="search"], .tabela-barra select, .controle select {
+  background: var(--surface);
+  color: var(--ink-1);
+  border: 1px solid var(--baseline);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.tabela-barra .contagem { color: var(--ink-3); font-size: 12px; margin-left: auto; }
+
+.tabela-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+
+table.dados { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+
+table.dados th {
+  text-align: left;
+  color: var(--ink-2);
+  font-weight: 600;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--baseline);
+  background: var(--surface);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+table.dados th .seta { color: var(--ink-3); font-size: 10px; }
+
+table.dados td { padding: 6px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+
+table.dados td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+table.dados tbody tr:hover { background: var(--wash-1); }
+
+.paginacao { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12.5px; color: var(--ink-2); }
+
+.paginacao button, .tabela-barra button {
+  background: var(--surface);
+  color: var(--ink-1);
+  border: 1px solid var(--baseline);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.paginacao button:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- listas e definicoes ---------- */
+
+.lista-epistemica { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+
+.lista-epistemica .col h4 { margin: 0 0 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+
+.lista-epistemica ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 13px; }
+
+.lista-epistemica li { margin-bottom: 4px; }
+
+dl.glossario dt { font-weight: 650; margin-top: 12px; }
+dl.glossario dd { margin: 2px 0 0; color: var(--ink-2); }
+
+/* ---------- matriz de hipoteses (cartoes verticais, sem scroll) ---------- */
+
+.hipotese-item { padding: 14px 2px; border-bottom: 1px solid var(--grid); }
+
+.hipotese-item:last-of-type { border-bottom: none; }
+
+.hipotese-cab { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.hipotese-cab h4 { margin: 0; font-size: 14px; }
+
+.hipotese-confianca { color: var(--ink-3); font-size: 12px; }
+
+.hipotese-resultado { color: var(--ink-2); font-size: 13px; margin: 6px 0 10px; max-width: 76rem; }
+
+.hipotese-conclusoes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.hipotese-conclusoes .conclusao { border-left: 3px solid var(--baseline); padding: 2px 12px; }
+
+.hipotese-conclusoes .permitida { border-left-color: var(--status-good); }
+
+.hipotese-conclusoes .proibida { border-left-color: var(--status-critical); }
+
+.hipotese-conclusoes p { margin: 0; font-size: 13px; }
+
+.rotulo-mini {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  margin-bottom: 2px;
+}
+
+.hipotese-meta { color: var(--ink-3); font-size: 12px; margin: 8px 0 0; max-width: 76rem; }
+
+@media (max-width: 720px) {
+  .hipotese-conclusoes { grid-template-columns: 1fr; }
+}
+
+.faq details { border-bottom: 1px solid var(--grid); padding: 8px 0; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq p { color: var(--ink-2); margin: 6px 0 0; }
+
+.controle { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; color: var(--ink-2); }
+
+@media (max-width: 640px) {
+  main { padding: 14px 12px 48px; }
+  .topo { padding: 14px 12px 8px; }
+  .tile .valor { font-size: 22px; }
+}

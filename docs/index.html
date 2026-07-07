@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel Resultados — auditoria analítica de varejo</title>
+<meta name="description" content="Dashboard estático (Spec 09) que consome somente outputs validados das Specs 01–08. Distingue fato validado, evidência descritiva, associação exploratória, triagem e conclusões bloqueadas.">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topo">
+  <h1>Painel Resultados — auditoria analítica de varejo</h1>
+  <p class="sub">Período 2024‑01 a 2025‑12 · 11 lojas · 2.731 SKUs cadastrados. Este painel é camada de apresentação:
+  consome somente outputs validados (<code>outputs/tables/</code>, <code>docs/</code>, <code>reports/relatorio_final.md</code>)
+  e não recalcula regras de negócio. Não lê dados brutos — a pasta de dados brutos não é fonte deste painel.</p>
+  <p class="fonte-nota">Regras de leitura obrigatórias: venda observada não é demanda real · gap contábil de estoque não é
+  ruptura física comprovada · correlação preço‑volume não é elasticidade · triagens não são decisões finais ·
+  compras não são causa comprovada da queda. Marcadores: <strong>BLOQUEADO</strong>, <strong>DADO AUSENTE</strong>, <strong>NÃO VALIDADO</strong>.</p>
+</header>
+
+<nav class="abas" id="abas">
+  <a href="#/sumario">Sumário executivo</a>
+  <a href="#/qualidade">Qualidade dos dados</a>
+  <a href="#/vendas">Vendas</a>
+  <a href="#/lojas">Lojas</a>
+  <a href="#/categorias">Categorias</a>
+  <a href="#/sortimento">Sortimento</a>
+  <a href="#/compras">Compras, estoque e gap contábil</a>
+  <a href="#/precificacao">Precificação</a>
+  <a href="#/projecao">Projeção e triagens</a>
+  <a href="#/hipoteses">Hipóteses e conclusão</a>
+  <a href="#/glossario">Glossário</a>
+</nav>
+
+<main>
+
+<!-- ================= 1. SUMARIO EXECUTIVO ================= -->
+<section class="pagina" id="sumario">
+  <h2>Sumário executivo</h2>
+  <p class="interpretacao">O que aconteceu: as vendas observadas caíram fortemente ao longo de 2025, de forma
+  distribuída por lojas e categorias, com estreitamento do sortimento vendido e uma lacuna contábil relevante entre
+  entradas conhecidas e saídas observadas. O percentual de queda depende da janela declarada — a comparação
+  2024‑11 → 2025‑12 é extrema por sazonalidade (Black Friday). Fonte: <code>reports/relatorio_final.md</code>.</p>
+
+  <div class="grade-tiles" id="sumario-kpis"></div>
+
+  <div class="bloco">
+    <h3>O que os dados permitem afirmar — e o que ainda é hipótese</h3>
+    <p class="sub">Separação epistêmica obrigatória do projeto (Spec 07). Cada afirmação abaixo é rastreável a um output validado.</p>
+    <div class="lista-epistemica" id="sumario-epistemico"></div>
+    <p class="nota-limitacao">Nenhum item exploratório ou de triagem pode ser lido como decisão. Decisões de compra,
+    promoção, repricing e descontinuação permanecem <strong>BLOQUEADO</strong> por DADO AUSENTE (margem, estoque atual
+    confiável, lead time, lote mínimo, fornecedor). Venda observada não é demanda real.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Status das 10 hipóteses (H1–H10)</h3>
+    <p class="sub">Resumo da matriz de validação — detalhes na aba <a href="#/hipoteses">Hipóteses e conclusão</a>.</p>
+    <div class="grade-tiles" id="sumario-hipoteses"></div>
+  </div>
+</section>
+
+<!-- ================= 2. QUALIDADE DOS DADOS ================= -->
+<section class="pagina" id="qualidade">
+  <h2>Qualidade dos dados</h2>
+  <p class="interpretacao">Esta página responde se o projeto pode sustentar conclusões causais. Resposta curta: <strong>não
+  pode</strong> — a base de compras cobre 7 de 11 lojas e 329 de 2.731 produtos, e as entradas conhecidas cobrem 37,4%
+  das saídas observadas. Conclusões causais sobre reposição estão <strong>BLOQUEADO</strong>.</p>
+
+  <div class="grade-tiles" id="qualidade-kpis"></div>
+
+  <div class="bloco">
+    <h3>Checks de qualidade (Spec 02)</h3>
+    <p class="sub">Fonte: <code>outputs/tables/data_quality_report.csv</code>. Status controlado: PASS, WARN, FAIL.
+    FAIL invalida ou torna não comprovável uma conclusão importante do relatório.</p>
+    <div id="qualidade-tabela"></div>
+    <p class="nota-limitacao">Um check FAIL não corrige nem imputa dados: ele mede e reporta. Os FAIL de cobertura de
+    compras tornam a hipótese H5 (reposição causou a queda) inválida por limitação de dados.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Auditoria de ingestão (Spec 01)</h3>
+    <p class="sub">Fonte: <code>outputs/tables/ingestion_audit.csv</code>. Encoding, separador, parsing e descartes por
+    arquivo bruto — nenhuma transformação implícita.</p>
+    <div id="ingestao-tabela"></div>
+    <p class="nota-limitacao">Zeros criados por tratamento: 0 em todas as bases. Registros descartados na ingestão: 0.
+    O único “nulo” real é campo estruturalmente vazio na origem. Itens ainda abertos: dicionário sem aba para
+    <code>dimensao_precos</code> (DADO AUSENTE) e acentuação de <code>Descr_unidades_medida</code> (NÃO VALIDADO).</p>
+  </div>
+</section>
+
+<!-- ================= 3. VENDAS ================= -->
+<section class="pagina" id="vendas">
+  <h2>Vendas</h2>
+  <p class="interpretacao">Receita e quantidade observadas por mês. O grão da base de vendas foi validado
+  (produto × loja × dia × embalagem, 0 duplicatas), então a série descritiva tem confiança alta. Não existe ID de
+  cupom/pedido: contagens são “linhas de venda diárias”, não transações. Venda observada não é demanda real —
+  pode estar censurada por disponibilidade.</p>
+
+  <div class="grade-tiles" id="vendas-kpis"></div>
+
+  <div class="bloco">
+    <h3>Receita mensal observada</h3>
+    <p class="sub">Fórmula: <code>sum(QUANTIDADE_VENDIDA × PRECO_UNIT_MEDIO)</code> · unidade: BRL · confiança: alta ·
+    fonte: <code>outputs/tables/vendas_mensais.csv</code>.</p>
+    <div class="grafico" id="vendas-graf-receita"></div>
+    <p class="nota-limitacao">Novembro concentra sazonalidade (Black Friday). Comparações devem usar o mesmo mês do ano
+    anterior (regra 7 de <code>docs/business_rules.md</code>).</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Quantidade vendida mensal (unidade de venda)</h3>
+    <p class="sub">Fórmula: <code>sum(QUANTIDADE_VENDIDA)</code> · unidade: unidade de venda original · confiança: alta no grão.</p>
+    <div class="grafico" id="vendas-graf-qtd"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>Variação YoY da receita — mês contra mesmo mês (2025 vs 2024)</h3>
+    <p class="sub">Fórmula: <code>(valor_mês_2025 − valor_mês_2024) / valor_mês_2024</code> · derivada de
+    <code>vendas_mensais.csv</code> pela fórmula documentada no catálogo de métricas.</p>
+    <div class="grafico" id="vendas-graf-yoy"></div>
+    <p class="nota-limitacao">O “número oficial da queda” depende da janela: −91,7% entre 2024‑11 e 2025‑12 (janela
+    extrema), percentuais diferentes em outras janelas. Todo número de queda precisa declarar método e período.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Tabela — vendas mensais</h3>
+    <div id="vendas-tabela"></div>
+  </div>
+</section>
+
+<!-- ================= 4. LOJAS ================= -->
+<section class="pagina" id="lojas">
+  <h2>Lojas</h2>
+  <p class="interpretacao">Onde aconteceu: a queda anual observada em 2025 aparece nas 11 lojas, de −30,6% (loja 9,
+  Salvador) a −66,5% (loja 93, Alhandra). Em 2025, 130 de 132 pares loja‑mês são comparáveis YoY. “Dias com venda” mede
+  atividade observada — ausência de venda não prova fechamento operacional (DADO AUSENTE: calendário operacional).</p>
+
+  <div class="bloco">
+    <h3>Variação anual da receita por loja — 2025 vs 2024</h3>
+    <p class="sub">Agregação anual de <code>outputs/tables/vendas_same_store_yoy.csv</code> (soma dos meses de 2025 vs
+    mesmos meses de 2024) · selo: evidência descritiva.</p>
+    <div class="grafico" id="lojas-graf-anual"></div>
+    <p class="nota-limitacao">A afirmação antiga de que a loja 9 cresceu +73% não se reproduziu nos outputs auditáveis e
+    permanece NÃO VALIDADO. Quedas por loja podem refletir mix, disponibilidade, concorrência ou fatores locais — o dado
+    não autoriza atribuir causa.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Receita mensal da loja — 2025 vs mesmo mês de 2024</h3>
+    <div class="controle">
+      <label for="lojas-seletor">Loja:</label>
+      <select id="lojas-seletor"></select>
+      <span id="lojas-seletor-info"></span>
+    </div>
+    <div class="grafico" id="lojas-graf-mensal"></div>
+    <p class="nota-limitacao">Lojas sem observação no mesmo mês do ano anterior aparecem como não comparáveis
+    (<code>loja_comparavel_yoy = false</code>) — a comparação exige observação dos dois lados.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Tabela — same-store YoY por loja e mês</h3>
+    <p class="sub">Fonte: <code>outputs/tables/vendas_same_store_yoy.csv</code> (2025; inclui dias com venda e SKUs vendidos).</p>
+    <div id="lojas-tabela"></div>
+  </div>
+</section>
+
+<!-- ================= 5. CATEGORIAS ================= -->
+<section class="pagina" id="categorias">
+  <h2>Categorias</h2>
+  <p class="interpretacao">A queda de 2025 é majoritariamente generalizada entre categorias (206 linhas categoria‑mês em
+  queda generalizada), com concentrações pontuais (23) e 38 casos de crescimento. A hipótese “poucas categorias explicam
+  a queda” não se sustenta na forma forte — H2 ficou parcialmente suportada.</p>
+
+  <div class="bloco">
+    <h3>Classificação das categorias por mês — 2025</h3>
+    <p class="sub">Contagem de categorias (NIVEL_1) por classificação YoY em cada mês. Fonte:
+    <code>outputs/tables/vendas_categorias_yoy.csv</code>.</p>
+    <div class="grafico" id="categorias-graf-classif"></div>
+    <p class="nota-limitacao">Classificação usa mês contra mesmo mês do ano anterior. 2024 fica como “dados
+    insuficientes” por não existir 2023 na base contratada (DADO AUSENTE).</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Tabela — variação YoY por categoria</h3>
+    <div id="categorias-tabela"></div>
+  </div>
+</section>
+
+<!-- ================= 6. SORTIMENTO ================= -->
+<section class="pagina" id="sortimento">
+  <h2>Sortimento</h2>
+  <p class="interpretacao">SKUs vendidos por mês caíram de 2.490 (2024‑11) para 1.212 (2025‑12). O controle por volume
+  responde à pergunta central: dado o volume de linhas do mês, quantos SKUs seriam esperados se o mix histórico
+  continuasse igual? Em 2025‑12 eram esperados ~1.849 SKUs — o observado ficou abaixo do intervalo
+  (estreitamento além do esperado). Isso é evidência descritiva de estreitamento; <strong>não prova indisponibilidade
+  física</strong> nem demanda menor.</p>
+
+  <div class="bloco">
+    <h3>SKUs observados vs esperados (controle por volume)</h3>
+    <p class="sub">Bootstrap com mix do mesmo mês do ano anterior (120 iterações, semente fixa); faixa sombreada = p05–p95.
+    Fonte: <code>outputs/tables/sortimento_controlado_por_volume.csv</code>.</p>
+    <div class="grafico" id="sortimento-graf"></div>
+    <p class="nota-limitacao">O esperado só existe para 2025 (2024 não tem referência de 2023 — DADO AUSENTE). Queda de
+    SKUs não é automaticamente ruptura: pode refletir volume, mix, preço, campanhas ou captura de dados.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Linhas de venda diárias por mês</h3>
+    <p class="sub">Volume de transações não existe (sem ID de cupom — DADO AUSENTE); linhas diárias são o proxy documentado.</p>
+    <div class="grafico" id="sortimento-graf-linhas"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>Tabela — sortimento controlado por volume</h3>
+    <div id="sortimento-tabela"></div>
+  </div>
+</section>
+
+<!-- ================= 7. COMPRAS, ESTOQUE E GAP CONTABIL ================= -->
+<section class="pagina" id="compras">
+  <h2>Compras, estoque e gap contábil</h2>
+  <p class="interpretacao">As entradas conhecidas (estoque inicial + compras registradas, em unidade de armazenagem)
+  cobrem apenas 37,4% das saídas observadas. O saldo projetado negativo é <strong>gap contábil</strong> — lacuna entre
+  entradas conhecidas e saídas — e <strong>não é ruptura física comprovada</strong>. A cobertura do período total foi
+  classificada como “não confiável para análise causal”.</p>
+
+  <div class="grade-tiles" id="compras-kpis"></div>
+
+  <div class="bloco">
+    <h3>Cobertura das entradas conhecidas por mês</h3>
+    <p class="sub">Fórmula: <code>entradas_conhecidas / vendas em unidade de armazenagem</code> · fonte:
+    <code>outputs/tables/compras_coverage_audit.csv</code>.</p>
+    <div class="grafico" id="compras-graf-mes"></div>
+    <p class="nota-limitacao">Compras convertidas por <code>CONVERSAO_COMPRA_ARMAZENAGEM</code> (Spec 04). Possíveis causas
+    do gap: compras não capturadas, transferências, ajustes, devoluções, inventário ausente, falha de extração — o dado
+    não permite escolher uma causa (BLOQUEADO decompor sem novas bases).</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Cobertura por loja</h3>
+    <div class="grafico" id="compras-graf-loja"></div>
+    <p class="nota-limitacao">4 lojas (1, 4, 8, 9) não têm nenhuma compra registrada na base entregue — mais um sinal de
+    base incompleta (H6 confirmada descritivamente) do que de operação sem reposição.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Maiores gaps contábeis (top 50 pares produto × loja)</h3>
+    <p class="sub">Fonte: <code>outputs/tables/gaps_saldo_contabil_estoque.csv</code> (28.721 pares; 14.570 com gap &gt; 0).
+    Fórmula: <code>max(vendas − estoque inicial − compras, 0)</code>, tudo em unidade de armazenagem.</p>
+    <div id="compras-tabela-gaps"></div>
+    <p class="nota-limitacao" id="compras-gaps-interpretacao"></p>
+  </div>
+</section>
+
+<!-- ================= 8. PRECIFICACAO ================= -->
+<section class="pagina" id="precificacao">
+  <h2>Precificação</h2>
+  <p class="interpretacao">160 produtos apresentam correlação negativa forte (&lt; −0,4, mínimo de 8 observações) entre
+  preço médio mensal e volume. Isso é <strong>associação exploratória</strong> — candidatos a investigação de preço.
+  Correlação preço‑volume não é elasticidade e não prova efeito causal: preço, mix, disponibilidade e sazonalidade
+  variam juntos.</p>
+
+  <div class="grade-tiles" id="precificacao-kpis"></div>
+
+  <div class="bloco">
+    <h3>Distribuição das correlações negativas fortes</h3>
+    <p class="sub">Histograma dos coeficientes · fonte: <code>outputs/tables/produtos_correlacao_preco_volume_negativa.csv</code>.</p>
+    <div class="grafico" id="precificacao-graf-hist"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>Candidatos a investigação de preço</h3>
+    <div id="precificacao-tabela"></div>
+    <p class="nota-limitacao">Para virar orientação de preço seriam necessários margem, concorrência, campanhas,
+    disponibilidade por período e teste controlado — todos DADO AUSENTE. Nenhuma linha é decisão de repricing.</p>
+  </div>
+</section>
+
+<!-- ================= 9. PROJECAO E TRIAGENS ================= -->
+<section class="pagina" id="projecao">
+  <h2>Projeção e triagens</h2>
+  <p class="interpretacao">A projeção 2026 é <strong>venda observada projetada</strong> (tendência por produto × índice
+  sazonal por categoria) — um cenário‑piso baseado no histórico observado, não demanda potencial. A compra líquida está
+  <strong>BLOQUEADO</strong> em todos os 2.729 produtos: não há estoque atual confiável. Todas as listas abaixo são
+  triagens de priorização, não decisões.</p>
+
+  <div class="grade-tiles" id="projecao-kpis"></div>
+
+  <div class="bloco">
+    <h3>Top 30 produtos por venda observada projetada 2026</h3>
+    <p class="sub">Fonte: <code>outputs/tables/projecao_venda_observada_2026.csv</code> (2.729 produtos; tabela completa no CSV).</p>
+    <div id="projecao-tabela"></div>
+    <p class="nota-limitacao">Se houver censura por indisponibilidade no histórico, a projeção herda essa censura — ela
+    não mede potencial total. Compra bruta sugerida é piso para triagem, nunca pedido final.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Triagens (repricing, compras, promoção, descontinuação)</h3>
+    <p class="sub">Toda triagem carrega regra usada, evidência, nível de confiança, dado faltante, risco de decisão e
+    próxima validação necessária. Fonte: <code>outputs/tables/triagem_*.csv</code>.</p>
+    <div class="controle">
+      <label for="triagem-seletor">Triagem:</label>
+      <select id="triagem-seletor">
+        <option value="repricing">Repricing</option>
+        <option value="compras">Compras</option>
+        <option value="promocao">Promoção</option>
+        <option value="descontinuacao">Descontinuação</option>
+      </select>
+    </div>
+    <div id="triagem-detalhe"></div>
+  </div>
+</section>
+
+<!-- ================= 10. HIPOTESES E CONCLUSAO ================= -->
+<section class="pagina" id="hipoteses">
+  <h2>Hipóteses e conclusão</h2>
+  <p class="interpretacao">Matriz H1–H10 com vocabulário controlado (Spec 07). Cada hipótese lista a evidência usada, a
+  conclusão permitida e a conclusão proibida. Fonte: <code>outputs/tables/hypothesis_status.csv</code> e
+  <code>docs/hypothesis_validation_matrix.md</code>.</p>
+
+  <div class="controle">
+    <label for="hipoteses-filtro">Filtrar por status:</label>
+    <select id="hipoteses-filtro"><option value="">Todos</option></select>
+  </div>
+  <div class="bloco">
+    <div id="hipoteses-tabela"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>Conclusão honesta</h3>
+    <p class="sub">Transcrição da Seção 16 de <code>reports/relatorio_final.md</code>.</p>
+    <p>A queda de vendas observadas é real como fato descritivo, ampla por lojas e categorias, acompanhada por
+    estreitamento do sortimento vendido e por uma lacuna contábil relevante entre entradas conhecidas e saídas
+    observadas. Mas a conclusão causal central fica bloqueada: a base de compras é insuficiente para explicar por que as
+    vendas caíram. O próximo passo correto não é executar automaticamente compras ou descontinuações, e sim completar a
+    evidência operacional que falta.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Quais dados adicionais são necessários</h3>
+    <ul>
+      <li>Base completa de entradas: compras, transferências, ajustes, devoluções e inventário final.</li>
+      <li>Estoque operacional por SKU, loja e data.</li>
+      <li>Calendário operacional das lojas (aberturas, fechamentos, reformas).</li>
+      <li>Pedidos perdidos ou outra medida de procura não atendida.</li>
+      <li>Margem, custo, fornecedor, lead time, lote mínimo e nível de serviço.</li>
+      <li>Campanhas, concorrência, preços de mercado e substitutos.</li>
+    </ul>
+    <p class="nota-limitacao">Enquanto esses dados forem DADO AUSENTE, permanecem BLOQUEADO: causalidade
+    compras → vendas, ruptura física, demanda potencial, compra líquida, pedido final e ação automática de promoção ou
+    descontinuação.</p>
+  </div>
+</section>
+
+<!-- ================= 11. GLOSSARIO ================= -->
+<section class="pagina" id="glossario">
+  <h2>Glossário</h2>
+  <p class="interpretacao">Guia de leitura para usuários não técnicos: termos, fórmulas, selos, bases e perguntas
+  frequentes. Fontes: <code>docs/metric_catalog.md</code>, <code>docs/business_rules.md</code>, <code>docs/data_contract.md</code>.</p>
+
+  <div class="bloco">
+    <h3>Selos usados neste painel</h3>
+    <div id="glossario-selos"></div>
+  </div>
+
+  <div class="bloco">
+    <h3>Termos técnicos</h3>
+    <dl class="glossario">
+      <dt>Venda observada</dt>
+      <dd>O que foi efetivamente registrado como vendido. Não é demanda real: não mede o que o cliente teria comprado com
+      disponibilidade e preço ideais.</dd>
+      <dt>Gap contábil de estoque</dt>
+      <dd><code>max(vendas − estoque inicial − compras registradas, 0)</code>, em unidade de armazenagem. Mede lacuna entre
+      entradas conhecidas e saídas observadas. Não é ruptura física comprovada.</dd>
+      <dt>Correlação preço‑volume</dt>
+      <dd>Associação estatística entre preço médio mensal e quantidade vendida (mínimo 8 observações). Não é elasticidade
+      nem prova causalidade — serve para priorizar investigação.</dd>
+      <dt>Triagem</dt>
+      <dd>Lista de priorização de investigação (repricing, compras, promoção, descontinuação) com dados críticos ausentes.
+      Não é decisão final.</dd>
+      <dt>Same-store YoY</dt>
+      <dd>Comparação da loja com ela mesma no mesmo mês do ano anterior, apenas quando há observação dos dois lados.</dd>
+      <dt>Sortimento controlado por volume</dt>
+      <dd>Quantos SKUs seriam esperados no mês dado o volume de linhas, se o mix histórico continuasse igual (bootstrap com
+      percentis p05–p95).</dd>
+      <dt>Linhas de venda diárias</dt>
+      <dd>Registros no grão produto × loja × dia × embalagem. Não são cupons/pedidos (não existe ID de transação).</dd>
+      <dt>Entradas conhecidas</dt>
+      <dd>Estoque inicial + compras registradas convertidas para unidade de armazenagem.</dd>
+      <dt>Unidade de armazenagem</dt>
+      <dd>Unidade comum de estoque. Vendas e compras são convertidas antes de qualquer comparação
+      (<code>QTD × CONVERSAO</code>).</dd>
+      <dt>BLOQUEADO / DADO AUSENTE / NÃO VALIDADO</dt>
+      <dd>Vocabulário de limitação: decisão sem dado crítico (BLOQUEADO), informação inexistente no repositório
+      (DADO AUSENTE) e afirmação plausível sem evidência reexecutável (NÃO VALIDADO).</dd>
+    </dl>
+  </div>
+
+  <div class="bloco">
+    <h3>Fórmulas principais (catálogo de métricas)</h3>
+    <div id="glossario-formulas"></div>
+    <p class="nota-limitacao">Limiares herdados (correlação forte &lt; −0,4; n_obs ≥ 8; estoque de segurança 30 dias)
+    são escolhas técnicas NÃO VALIDADO com o negócio.</p>
+  </div>
+
+  <div class="bloco">
+    <h3>Dicionário de dados simplificado</h3>
+    <dl class="glossario">
+      <dt>fato_vendas (1.090.390 linhas)</dt>
+      <dd>Vendas diárias por produto × loja × embalagem: data, quantidade, conversão para armazenagem, preço unitário médio do dia.</dd>
+      <dt>fato_compras (1.393 linhas)</dt>
+      <dd>Entradas de compra registradas (única fonte de reposição disponível). Cobre 7/11 lojas e 329/2.731 produtos —
+      incompleta para reconstruir entradas.</dd>
+      <dt>fato_estoque_inicial (25.330 linhas)</dt>
+      <dd>Posição inicial por produto × loja, em unidade de estoque. 47,6% de zeros explícitos com semântica NÃO VALIDADO.</dd>
+      <dt>dim_produto (2.731 linhas)</dt>
+      <dd>Cadastro com hierarquia (NIVEL_1/2/3), embalagens e conversões de unidade.</dd>
+      <dt>dim_lojas (11 linhas)</dt>
+      <dd>Lojas com cidade e estado (PE, BA, SE, PB, RN).</dd>
+      <dt>dim_precos (28.560 linhas)</dt>
+      <dd>Preço de tabela por produto × loja. Única base sem aba no dicionário oficial (DADO AUSENTE).</dd>
+    </dl>
+  </div>
+
+  <div class="bloco faq">
+    <h3>Perguntas frequentes</h3>
+    <details><summary>As vendas caíram quanto, afinal?</summary>
+    <p>Depende da janela. Entre 2024‑11 (R$ 47,2 mi) e 2025‑12 (R$ 3,9 mi) a queda é de 91,7%, mas essa janela é extrema
+    por sazonalidade. Outras janelas produzem percentuais diferentes. Qualquer número de queda precisa declarar método e
+    período — não existe um único “número oficial” sem contexto.</p></details>
+    <details><summary>As lojas ficaram sem produto para vender?</summary>
+    <p>Não é possível afirmar. O sortimento vendido encolheu além do esperado pelo volume em parte de 2025, o que é
+    compatível com indisponibilidade — mas também com menor procura, mudança de mix, preço, campanhas ou falha de captura.
+    Sem dados de disponibilidade física, a pergunta permanece hipótese em teste.</p></details>
+    <details><summary>A queda foi culpa das compras/reposição?</summary>
+    <p>Não comprovável. A base de compras cobre só 37,4% das saídas e foi classificada como não confiável para análise
+    causal. O que se pode afirmar: os registros disponíveis de compras são incompletos (H6). Atribuir causa exigiria a
+    base completa de entradas.</p></details>
+    <details><summary>Posso executar as listas de compra/descontinuação?</summary>
+    <p>Não. São triagens com nível de confiança baixo ou BLOQUEADO. Faltam margem, estoque atual confiável, lead time,
+    lote mínimo e fornecedor. Use-as como fila de investigação, validando item a item.</p></details>
+    <details><summary>Os produtos com correlação negativa são sensíveis a preço?</summary>
+    <p>Não se pode concluir isso. Correlação preço‑volume é associação observacional — candidatos a investigação
+    comercial. Elasticidade exigiria desenho causal (teste controlado), que não existe nesta base.</p></details>
+    <details><summary>A projeção 2026 é a demanda esperada?</summary>
+    <p>Não. É projeção da venda observada (cenário‑piso baseado no histórico). Se o histórico estiver censurado por
+    indisponibilidade, a projeção herda a censura. Demanda potencial permanece BLOQUEADO por DADO AUSENTE.</p></details>
+  </div>
+
+  <div class="bloco">
+    <h3>Tecnologias usadas</h3>
+    <ul>
+      <li><strong>Pipeline e auditoria:</strong> Python, pandas, numpy, pyarrow, openpyxl, matplotlib, pandera (contratos), pytest (testes), ruff (lint), Makefile.</li>
+      <li><strong>Dados do painel:</strong> JSON estático gerado por <code>src/dashboard_build.py</code> a partir de <code>outputs/tables/</code> (sem leitura de dados brutos).</li>
+      <li><strong>Painel:</strong> HTML, CSS e JavaScript puros (sem CDN, sem framework); gráficos em SVG próprio — funciona offline e em GitHub Pages.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+
+<script src="data/dashboard_data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
